@@ -1,5 +1,7 @@
 package edu.macalester.comp124.mymap;
 
+import sun.jvm.hotspot.utilities.HashtableEntry;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -45,10 +47,17 @@ public class MyMap <K, V> {
 	 */
 	public void put(K key, V value) {
 		expandIfNecessary();
-		
-		// TODO: Store the key.
-	}
-	
+        int hc = Math.abs(key.hashCode());
+        int bucketIndex = hc % buckets.length;
+        for (int i = 0; i < buckets.length; i++)
+        {
+            if (buckets[i].getKey().equals(key))
+            {
+                buckets[i].setValue(value);
+	        }
+        }
+    }
+
 	/**
 	 * Returns the value associated with the specified key, or null if it
 	 * doesn't exist.
@@ -57,8 +66,14 @@ public class MyMap <K, V> {
 	 * @return
 	 */
 	public V get(K key) {
-		// TODO: retrieve the key.
-		return null;
+        for (int i = 0; i < buckets.length; i++) {
+            if (buckets[i] != null) {
+                if (buckets[i].getKey().equals(key)) {
+                    return buckets[i].getValue();
+                }
+            }
+        }
+        return null;
 	}
 	
 	/**
@@ -85,5 +100,6 @@ public class MyMap <K, V> {
 		}
 		return entries;
 	}
+
 	
 }
