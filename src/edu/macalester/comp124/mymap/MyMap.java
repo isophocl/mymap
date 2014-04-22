@@ -2,6 +2,7 @@ package edu.macalester.comp124.mymap;
 
 import sun.jvm.hotspot.utilities.HashtableEntry;
 
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,15 +47,22 @@ public class MyMap <K, V> {
 	 * @param value
 	 */
 	public void put(K key, V value) {
-		expandIfNecessary();
-        int hc = Math.abs(key.hashCode());
-        int bucketIndex = hc % buckets.length;
-        for (int i = 0; i < buckets.length; i++)
-        {
-            if (buckets[i].getKey().equals(key))
-            {
-                buckets[i].setValue(value);
-	        }
+        MyEntry<K, V> entry = new MyEntry<K, V>(key, value);
+        int num = Integer.parseInt(entry.getKey().toString()) % buckets.length;
+        boolean replace = false;
+
+        for (int i = 0; i < buckets[num].size(); i++) {
+
+            MyEntry<K, V> bucket = buckets[num].get(i);
+            if (bucket.getKey().equals(key)) {
+                bucket.setValue(value);
+                replace = true;
+            }
+        }
+        if (!replace) {
+            expandIfNecessary();
+            buckets[num].add(entry);
+            numEntries++;
         }
     }
 
@@ -66,22 +74,35 @@ public class MyMap <K, V> {
 	 * @return
 	 */
 	public V get(K key) {
-        for (int i = 0; i < buckets.length; i++) {
-            if (buckets[i] != null) {
-                if (buckets[i].getKey().equals(key)) {
-                    return buckets[i].getValue();
-                }
+        int num = Integer.parseInt(key.toString()) % buckets.length;
+        for (int i = 0; i < buckets[num].size(); i++) {
+            MyEntry<K, V> bucket = buckets[num].get(i);
+            if (bucket.getKey().equals(key)) {
+                return bucket.getValue();
             }
         }
         return null;
-	}
-	
-	/**
+    }
+
+
+
+    /**
 	 * Expands the table to double the size, if necessary.
 	 */
 	private void expandIfNecessary() {
-		// TODO: expand if necessary
-	}
+        int newLength = buckets.length * 2;
+        if (size() >= loadFactor * buckets.length) {
+            List<MyEntry<K, V>>[] newBuckets = newArrayOfEntries(newLength);
+            for (int i = 0; i < buckets.length; i++) {
+                for (int j = 0; j < buckets[i].size(); j++) {
+                    MyEntry<K, V> entry = buckets[i].get(j);
+                    int num = Integer.parseInt(entry.getKey().toString()) % newLength;
+                    newBuckets[num].add(buckets[i].get(j));
+                }
+            }
+            buckets = newBuckets;
+        }
+    }
 	
 	/**
 	 * Returns an array of the specified size, each
